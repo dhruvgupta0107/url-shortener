@@ -1,6 +1,6 @@
-const express = require('express');
-const urlController = require('../controllers/urlController');
-const rateLimiter = require('../middlewares/rateLimiter');
+import express from 'express';
+import urlController from '../controllers/urlController.js';
+import rateLimiter from '../middlewares/rateLimiter.js';
 
 const router = express.Router();
 
@@ -14,4 +14,4 @@ router.get('/stats/:code', urlController.getStats);
 // Redirect route
 router.get('/:code', urlController.redirectUrl);
 
-module.exports = router;
+export default router;

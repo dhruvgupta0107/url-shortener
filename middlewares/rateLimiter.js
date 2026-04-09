@@ -1,4 +1,4 @@
-const { redisClient } = require('../config/redis');
+import { redisClient } from '../config/redis.js';
 
 const rateLimiter = (requestsPerMinute = 10) => {
   return async (req, res, next) => {
@@ -36,4 +36,4 @@ const rateLimiter = (requestsPerMinute = 10) => {
   };
 };
 
-module.exports = rateLimiter;
+export default rateLimiter;

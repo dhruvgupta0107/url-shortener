@@ -1,5 +1,5 @@
-const { nanoid } = require('nanoid');
-const Url = require('../models/Url');
+import { nanoid } from 'nanoid';
+import Url from '../models/Url.js';
 
 class UrlService {
   validateUrl(url) {
@@ -71,4 +71,4 @@ class UrlService {
   }
 }
 
-module.exports = new UrlService();
+export default new UrlService();

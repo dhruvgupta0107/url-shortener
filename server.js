@@ -1,8 +1,8 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-const { connectRedis } = require('./config/redis');
-const urlRoutes = require('./routes/urlRoutes');
+import express from 'express';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
+import { connectRedis } from './config/redis.js';
+import urlRoutes from './routes/urlRoutes.js';
 
 dotenv.config();
 
@@ -50,8 +50,8 @@ async function startServer() {
   });
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.cwd()}/server.js`) {
   startServer();
 }
 
-module.exports = app;
+export default app;

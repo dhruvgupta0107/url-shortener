@@ -1,5 +1,5 @@
-const urlService = require('../services/urlService');
-const Url = require('../models/Url');
+import urlService from '../services/urlService.js';
+import Url from '../models/Url.js';
 
 const urlController = {
   async shortenUrl(req, res) {
@@ -237,4 +237,4 @@ const urlController = {
   }
 };
 
-module.exports = urlController;
+export default urlController;
