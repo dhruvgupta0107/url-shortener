@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import 'dotenv/config';
 import connectDB from './config/db.js';
 import { connectRedis } from './config/redis.js';
 import urlRoutes from './routes/urlRoutes.js';
