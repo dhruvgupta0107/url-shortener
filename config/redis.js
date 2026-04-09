@@ -1,47 +1,40 @@
-import redis from 'redis';
-import dotenv from 'dotenv';
+import { createClient } from "redis";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-
-const redisClient = redis.createClient({
-    username: 'default',
-    password: process.env.REDIS_PASS,
-    socket: {
-        host: process.env.REDIS_URL,
-        port: process.env.REDIS_PORT
-    }
-});
-// const redisClient = redis.createClient({
-//   url: process.env.REDIS_URL || 'redis://localhost:6379'
-// });
-
-redisClient.on('error', (err) => {
-  console.error('Redis error:', err);
+// Create Redis client
+const redisClient = createClient({
+  url: process.env.REDIS_URL, // ✅ full Redis URL (IMPORTANT)
 });
 
-redisClient.on('connect', () => {
-  console.log('Redis connected');
+// Event listeners (for debugging)
+redisClient.on("error", (err) => {
+  console.error("❌ Redis error:", err);
 });
 
-const connectRedis = async () => {
+redisClient.on("connect", () => {
+  console.log("✅ Redis connected");
+});
+
+redisClient.on("reconnecting", () => {
+  console.log("🔄 Redis reconnecting...");
+});
+
+// Prevent multiple connections (important for serverless)
+let isConnected = false;
+
+// Connect function
+export const connectRedis = async () => {
   try {
-    await redisClient.connect();
+    if (!isConnected) {
+      await redisClient.connect();
+      isConnected = true;
+    }
   } catch (error) {
-    console.error('Redis connection error:', error);
+    console.error("❌ Redis connection error:", error);
   }
 };
 
-// import { createClient } from 'redis';
-
-// client.on('error', err => console.log('Redis Client Error', err));
-
-// await client.connect();
-
-// await client.set('foo', 'bar');
-// const result = await client.get('foo');
-// console.log(result)  // >>> bar
-
-
-
-export { redisClient, connectRedis };
+// Export client
+export { redisClient };
