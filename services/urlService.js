@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import Url from '../models/Url.js';
 
 class UrlService {
@@ -9,6 +8,17 @@ class UrlService {
     } catch {
       return false;
     }
+  }
+  generateBase62Code() {
+    const BASE62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const num = Math.floor(Math.random() * 62 ** 6);
+    let code = '';
+    let n = num;
+    while (n > 0) {
+      code = BASE62[n % 62] + code;
+      n = Math.floor(n / 62);
+    }
+    return code.padStart(6, 'a');
   }
 
   async shortenUrl(originalUrl, customCode = null) {
@@ -40,7 +50,7 @@ class UrlService {
     } else {
       // Generate random short code
       do {
-        shortCode = nanoid(8);
+        shortCode = this.generateBase62Code();
       } while (await Url.findOne({ shortCode }));
     }
 
