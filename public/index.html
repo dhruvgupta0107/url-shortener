@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tinify — URL Shortener</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c27;
+      --border: rgba(255,255,255,0.07);
+      --accent: #6c63ff;
+      --accent-glow: rgba(108, 99, 255, 0.35);
+      --accent2: #ff6584;
+      --text: #f0f0f5;
+      --muted: #6b6b80;
+      --success: #43e97b;
+      --error: #ff6584;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background orbs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 500px; height: 500px;
+      background: rgba(108, 99, 255, 0.12);
+      top: -100px; left: -100px;
+    }
+    body::after {
+      width: 400px; height: 400px;
+      background: rgba(255, 101, 132, 0.08);
+      bottom: -80px; right: -80px;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 520px;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 16px;
+      font-size: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 40%, var(--muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 6px;
+      font-weight: 300;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .card-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* Input group */
+    .input-group {
+      margin-bottom: 14px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 7px;
+      font-weight: 400;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap .icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+    input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input::placeholder { color: var(--muted); }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8b80ff);
+      color: white;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px var(--accent-glow);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-danger {
+      background: transparent;
+      border: 1px solid rgba(255, 101, 132, 0.3);
+      color: var(--accent2);
+      width: auto;
+      padding: 12px 20px;
+      flex-shrink: 0;
+    }
+    .btn-danger:hover {
+      background: rgba(255, 101, 132, 0.1);
+      border-color: var(--accent2);
+    }
+
+    /* Delete row */
+    .delete-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .delete-row .input-group { flex: 1; margin-bottom: 0; }
+
+    /* Result box */
+    .result-box {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: rgba(67, 233, 123, 0.06);
+      border: 1px solid rgba(67, 233, 123, 0.2);
+      border-radius: 10px;
+      animation: fadeUp 0.3s ease both;
+    }
+    .result-box.show { display: flex; align-items: center; gap: 12px; }
+    .result-box .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+      box-shadow: 0 0 8px var(--success);
+    }
+    .result-box .url-text {
+      font-size: 0.875rem;
+      color: var(--success);
+      word-break: break-all;
+      font-weight: 500;
+    }
+    .copy-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid rgba(67, 233, 123, 0.25);
+      color: var(--success);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s;
+      width: auto;
+    }
+    .copy-btn:hover { background: rgba(67, 233, 123, 0.1); }
+
+    /* Feedback messages */
+    .msg {
+      font-size: 0.8rem;
+      margin-top: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      display: none;
+    }
+    .msg.show { display: block; animation: fadeUp 0.3s ease both; }
+    .msg.error { background: rgba(255,101,132,0.08); color: var(--error); border: 1px solid rgba(255,101,132,0.2); }
+    .msg.success { background: rgba(67,233,123,0.08); color: var(--success); border: 1px solid rgba(67,233,123,0.2); }
+
+    /* API info */
+    .api-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px 28px;
+    }
+    .api-card .card-label { margin-bottom: 14px; }
+    .endpoint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+    .endpoint:last-child { border-bottom: none; }
+    .method {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .method.post { background: rgba(108,99,255,0.2); color: var(--accent); }
+    .method.get  { background: rgba(67,233,123,0.15); color: var(--success); }
+    .method.del  { background: rgba(255,101,132,0.15); color: var(--accent2); }
+    .endpoint code {
+      color: var(--muted);
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-mark">🔗</div>
+      <h1>tinify</h1>
+      <p>Tiny links. Big impact.</p>
+    </div>
+
+    <!-- Shorten card -->
+    <div class="card">
+      <div class="card-label">Shorten a URL</div>
+      <div class="input-group">
+        <label>Destination URL</label>
+        <div class="input-wrap">
+          <span class="icon">🔗</span>
+          <input type="url" id="url" required placeholder="https://your-long-url.com/goes-here">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Custom code <span style="color:var(--muted);font-weight:300">(optional)</span></label>
+        <div class="input-wrap">
+          <span class="icon">#</span>
+          <input type="text" id="customCode" placeholder="my-link" pattern="[a-zA-Z0-9_-]+" title="Letters, numbers, hyphens, underscores only">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="shortenBtn">Shorten →</button>
+
+      <div class="result-box" id="result">
+        <div class="dot"></div>
+        <span class="url-text" id="shortUrl"></span>
+        <button class="copy-btn" id="copyBtn">Copy</button>
+      </div>
+      <div class="msg error" id="shortenError"></div>
+    </div>
+
+    <!-- Delete card -->
+    <div class="card">
+      <div class="card-label">Delete a short URL</div>
+      <div class="delete-row">
+        <div class="input-group">
+          <label>Short code</label>
+          <div class="input-wrap">
+            <span class="icon">🗑</span>
+            <input type="text" id="deleteCode" placeholder="e.g. my-link">
+          </div>
+        </div>
+        <button class="btn btn-danger" id="deleteBtn">Delete</button>
+      </div>
+      <div class="msg error" id="deleteError"></div>
+      <div class="msg success" id="deleteSuccess"></div>
+    </div>
+
+    <!-- API reference -->
+    <div class="api-card">
+      <div class="card-label">API Reference</div>
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <code>/shorten</code>
+        <span style="color:var(--muted);font-size:0.78rem;margin-left:auto">{ url, customCode? }</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <code>/stats/:code</code>
+      </div>
+      <div class="endpoint">
+        <span class="method del">DEL</span>
+        <code>/delete/:code</code>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Shorten
+    document.getElementById('shortenBtn').addEventListener('click', async () => {
+      const url = document.getElementById('url').value.trim();
+      const customCode = document.getElementById('customCode').value.trim();
+      const resultBox = document.getElementById('result');
+      const shortUrlEl = document.getElementById('shortUrl');
+      const errorEl = document.getElementById('shortenError');
+
+      resultBox.classList.remove('show');
+      errorEl.classList.remove('show');
+
+      if (!url) { errorEl.textContent = 'Please enter a URL.'; errorEl.classList.add('show'); return; }
+
+      try {
+        const res = await fetch('/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, customCode })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to shorten URL');
+        shortUrlEl.textContent = data.shortUrl;
+        resultBox.classList.add('show');
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+      }
+    });
+
+    // Copy
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('shortUrl').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
+    });
+
+    // Delete
+    document.getElementById('deleteBtn').addEventListener('click', async () => {
+      const code = document.getElementById('deleteCode').value.trim();
+      const errorEl = document.getElementById('deleteError');
+      const successEl = document.getElementById('deleteSuccess');
+
+      errorEl.classList.remove('show');
+      successEl.classList.remove('show');
+
+      if (!code) { errorEl.textContent = 'Please enter a short code.'; errorEl.classList.add('show'); return; }
+
+      try {
+        const res = await fetch('/delete/' + encodeURIComponent(code), { method: 'DELETE' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete');
+        successEl.textContent = '✓ ' + data.message;
+        successEl.classList.add('show');
+        document.getElementById('deleteCode').value = '';
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.add('show');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import { redisClient } from '../config/redis.js';
 import Url from '../models/Url.js';
 
 class UrlService {
@@ -36,17 +37,17 @@ class UrlService {
 
     if (customCode) {
       // Validate custom code format
-      if (!/^[a-zA-Z0-9_-]+$/.test(customCode) || customCode.length > 50) {
-        throw new Error('Custom code must be alphanumeric and max 50 characters');
+      if (!/^[a-zA-Z0-9]+$/.test(customCode) || customCode.length > 20) {
+        throw new Error('Custom code must be alphanumeric and max 20 characters');
       }
 
       // Check if custom code is already taken
-      const existingCode = await Url.findOne({ shortCode: customCode.toLowerCase() });
+      const existingCode = await Url.findOne({ shortCode: customCode });
       if (existingCode) {
         throw new Error('Custom code already in use');
       }
 
-      shortCode = customCode.toLowerCase();
+      shortCode = customCode;
     } else {
       // Generate random short code
       do {
@@ -66,11 +67,30 @@ class UrlService {
   }
 
   async getOriginalUrl(shortCode) {
-    const url = await Url.findOne({ shortCode: shortCode.toLowerCase() });
+    const cachedUrl = await redisClient.get(`url:${shortCode}`);
+
+    if(cachedUrl){
+      Url.updateOne(
+        {shortCode: shortCode},
+        {$inc: {clicks: 1}, $set: {lastAccessed: new Date()}}
+      ).exec();
+
+      return cachedUrl;
+    }
+
+
+    const url = await Url.findOne({ shortCode: shortCode });
+
 
     if (!url) {
       throw new Error('Short URL not found');
     }
+
+    await redisClient.set(
+      `url:${shortCode}`,
+      url.originalUrl,
+      {EX: 60*60*24}
+    );
 
     // Update click tracking
     url.clicks += 1;

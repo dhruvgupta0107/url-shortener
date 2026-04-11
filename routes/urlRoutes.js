@@ -14,4 +14,6 @@ router.get('/stats/:code', urlController.getStats);
 // Redirect route
 router.get('/:code', urlController.redirectUrl);
 
+router.delete('/delete/:code', urlController.deleteUrl);
+
 export default router;

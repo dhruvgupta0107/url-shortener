@@ -36,6 +36,6 @@ export const connectRedis = async () => {
   }
 };
 
-console.log("REDIS_URL:", process.env.REDIS_URL);
+// console.log("REDIS_URL:", process.env.REDIS_URL);
 // Export client
 export { redisClient };
